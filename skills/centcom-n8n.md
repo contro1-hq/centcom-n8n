@@ -6,22 +6,65 @@ user_invocable: true
 
 # CENTCOM + n8n Skill
 
-Use this skill when a user wants n8n workflow approvals handled by CENTCOM.
+Use this skill when a user wants n8n workflow approvals handled by CENTCOM with production-safe pause/resume behavior.
 
-## Implementation steps
+## What to build
+
+Build an n8n workflow that:
+
+1. Creates a CENTCOM request via HTTP.
+2. Pauses until a callback is received.
+3. Branches on approval result.
+4. Continues execution only on approved path.
+
+## Implementation steps (recommended)
 
 1. Create request with n8n HTTP Request node.
-2. Pause with Wait node (On Webhook Call).
-3. Resume via callback and branch by approval result.
-4. Keep execution metadata in request `metadata`.
+2. Set `callback_url` to a workflow endpoint that feeds the resume path.
+3. Pause with Wait node (`On Webhook Call`) and enable authentication.
+4. Resume via callback and branch by approval result (`approved` or boolean `value`).
+5. Keep execution metadata in request `metadata` (workflow ID, execution ID, entity ID).
+6. Add timeout and fallback branch for expired/denied cases.
 
-## Short example
+## Required CENTCOM request fields
 
 ```json
 {
   "type": "approval",
   "question": "Approve deployment?",
   "context": "n8n workflow requests production deploy approval.",
-  "callback_url": "https://your-n8n-host/webhook/centcom-resume"
+  "callback_url": "https://your-n8n-host/webhook/centcom-resume",
+  "required_role": "manager",
+  "metadata": {
+    "workflow": "deploy-pipeline",
+    "execution_id": "{{$execution.id}}"
+  }
 }
 ```
+
+## Node-level checklist
+
+- HTTP Request node
+  - Method: `POST`
+  - URL: `https://api.contro1.com/api/centcom/v1/requests`
+  - Auth header: `Authorization: Bearer cc_live_xxx`
+- Wait node
+  - Resume mode: `On Webhook Call`
+  - Auth: enable Header/JWT/Basic where possible
+- IF/Switch node
+  - Approved path -> continue action
+  - Rejected/timeout path -> safe stop and notify
+
+## Common mistakes to avoid
+
+- Using no auth on resume webhook in production.
+- Not storing execution correlation in `metadata`.
+- Treating all responses as `approved`; always parse and validate.
+- Missing idempotency in retried create requests.
+
+## Validation steps
+
+1. Trigger workflow and confirm request appears in CENTCOM queue.
+2. Approve once and verify workflow resumes approved branch.
+3. Reject once and verify workflow goes to fallback branch.
+4. Repeat run to confirm metadata correlation remains correct.
