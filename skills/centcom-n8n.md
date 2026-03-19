@@ -8,6 +8,18 @@ user_invocable: true
 
 Use this skill when a user wants n8n workflow approvals handled by CENTCOM with production-safe pause/resume behavior.
 
+## Required configuration
+
+Use your CENTCOM API key in the HTTP Request node:
+
+- Header: `Authorization: Bearer cc_live_xxx`
+
+Or if a bridge service is used, load key from environment:
+
+```bash
+CENTCOM_API_KEY=cc_live_xxx
+```
+
 ## What to build
 
 Build an n8n workflow that:
