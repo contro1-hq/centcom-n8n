@@ -12,8 +12,14 @@ This guide shows the recommended n8n integration with CENTCOM approvals.
 
 In your n8n HTTP Request node, configure:
 
-- Header `Authorization: Bearer cc_live_xxx`
+- Header `Authorization: Bearer {{$env.CENTCOM_API_KEY}}`
 - Header `Content-Type: application/json`
+
+If callbacks pass through your own service/proxy, verify CENTCOM signatures with:
+
+```bash
+CENTCOM_WEBHOOK_SECRET=whsec_your_signing_secret
+```
 
 ## Recommended flow
 

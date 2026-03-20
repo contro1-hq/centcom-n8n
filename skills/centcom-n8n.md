@@ -12,12 +12,13 @@ Use this skill when a user wants n8n workflow approvals handled by CENTCOM with 
 
 Use your CENTCOM API key in the HTTP Request node:
 
-- Header: `Authorization: Bearer cc_live_xxx`
+- Header: `Authorization: Bearer {{$env.CENTCOM_API_KEY}}`
 
 Or if a bridge service is used, load key from environment:
 
 ```bash
-CENTCOM_API_KEY=cc_live_xxx
+CENTCOM_API_KEY=your_centcom_api_key
+CENTCOM_WEBHOOK_SECRET=whsec_your_signing_secret
 ```
 
 ## What to build
@@ -59,7 +60,7 @@ Build an n8n workflow that:
 - HTTP Request node
   - Method: `POST`
   - URL: `https://api.contro1.com/api/centcom/v1/requests`
-  - Auth header: `Authorization: Bearer cc_live_xxx`
+  - Auth header: `Authorization: Bearer {{$env.CENTCOM_API_KEY}}`
 - Wait node
   - Resume mode: `On Webhook Call`
   - Auth: enable Header/JWT/Basic where possible
@@ -70,6 +71,7 @@ Build an n8n workflow that:
 ## Common mistakes to avoid
 
 - Using no auth on resume webhook in production.
+- Not validating CENTCOM callback signatures when using a proxy/bridge endpoint.
 - Not storing execution correlation in `metadata`.
 - Treating all responses as `approved`; always parse and validate.
 - Missing idempotency in retried create requests.
