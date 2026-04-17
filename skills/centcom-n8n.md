@@ -8,18 +8,29 @@ user_invocable: true
 
 Use this skill when a user wants n8n workflow approvals handled by CENTCOM with production-safe pause/resume behavior.
 
+## Installation (optional bridge proxy)
+
+If you use the callback proxy script (`examples/n8n_callback_proxy.py`):
+
+```bash
+pip install centcom flask python-dotenv requests
+```
+
+n8n itself requires no installation — it runs as a service.
+
 ## Required configuration
 
-Use your CENTCOM API key in the HTTP Request node:
-
-- Header: `Authorization: Bearer {{$env.CENTCOM_API_KEY}}`
-
-Or if a bridge service is used, load key from environment:
+n8n environment variables (set in n8n settings or `.env`):
 
 ```bash
 CENTCOM_API_KEY=your_centcom_api_key
+CENTCOM_BASE_URL=https://api.contro1.com/api/centcom/v1
 CENTCOM_WEBHOOK_SECRET=whsec_your_signing_secret
 ```
+
+Use in HTTP Request node headers:
+- `Authorization: Bearer {{$env.CENTCOM_API_KEY}}`
+- POST URL: `{{$env.CENTCOM_BASE_URL}}/requests`
 
 ## What to build
 
@@ -59,7 +70,7 @@ Build an n8n workflow that:
 
 - HTTP Request node
   - Method: `POST`
-  - URL: `https://api.contro1.com/api/centcom/v1/requests`
+  - URL: `{{$env.CENTCOM_BASE_URL}}/requests`
   - Auth header: `Authorization: Bearer {{$env.CENTCOM_API_KEY}}`
 - Wait node
   - Resume mode: `On Webhook Call`

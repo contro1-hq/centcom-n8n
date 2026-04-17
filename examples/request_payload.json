@@ -1,0 +1,28 @@
+{
+  "title": "Approve CRM write-back",
+  "description": "Sync 240 records from staging to production",
+  "request_type": "decision",
+  "source": {
+    "integration": "n8n",
+    "framework": "n8n",
+    "workflow_id": "crm-sync",
+    "run_id": "{{$execution.id}}"
+  },
+  "routing": {
+    "required_role": "manager",
+    "priority": "normal"
+  },
+  "context": {
+    "tool_name": "crm_writeback",
+    "summary": "n8n workflow requires approval before production write"
+  },
+  "continuation": {
+    "mode": "decision",
+    "callback_url": "https://your-proxy-host/centcom-callback"
+  },
+  "external_request_id": "n8n:crm-sync:{{$execution.id}}",
+  "metadata": {
+    "workflow": "crm-sync",
+    "execution_id": "{{$execution.id}}"
+  }
+}

@@ -1,83 +1,48 @@
 # centcom-n8n
 
-Official CENTCOM connector guides and templates for n8n workflows.
+n8n starter kit for Contro1/CENTCOM pause-resume workflows.
 
-## What this repo provides
+## Protocol
 
-- A practical pattern for n8n pause/resume approval flows using built-in nodes.
-- Field-level examples for `POST /requests` payloads and callback handling.
-- A skill file for AI-assisted implementation and validation.
+This starter uses **Contro1 Integration Protocol v1**:
 
-## Security defaults (required)
+- canonical request object (`Contro1Request`)
+- canonical response object (`Contro1Response`)
+- continuation mode: `decision` for wait/resume flow
+- routing metadata in request payload
 
-- Do not hardcode API keys in workflow JSON.
-- Use environment-backed auth headers:
+## Files
 
-```text
-Authorization: Bearer {{$env.CENTCOM_API_KEY}}
-```
+- `docs/n8n-connector.md`
+- `skills/centcom-n8n.md`
+- `.env.example`
+- `requirements.txt`
+- `examples/n8n_callback_proxy.py`
+- `examples/request_payload.json`
 
-- If callbacks pass through a proxy/bridge service, verify CENTCOM signatures with:
+## Quick Start
 
 ```bash
-CENTCOM_WEBHOOK_SECRET=whsec_your_signing_secret
+python -m venv .venv
+. .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env
+python examples/n8n_callback_proxy.py
 ```
 
-## Recommended architecture
+Proxy runs on `http://localhost:8083`.
 
-1. Trigger -> Set node prepares context.
-2. HTTP Request node creates CENTCOM request.
-3. Wait node (`On Webhook Call`) pauses execution.
-4. IF/Switch branches on approve vs deny/timeout.
+## Smoke Test
 
-## Quick Start request body
+1. Configure n8n `Wait (On Webhook Call)` URL in `.env` as `N8N_RESUME_URL`.
+2. Create a request in CENTCOM with callback URL: `http://localhost:8083/centcom-callback`.
+3. Approve/deny in CENTCOM.
+4. Verify proxy logs callback and forwards payload to n8n resume URL.
 
-```json
-{
-  "type": "approval",
-  "question": "Approve CRM write-back?",
-  "context": "Sync 240 records from staging to production.",
-  "callback_url": "https://your-n8n-host/webhook/centcom-resume",
-  "required_role": "manager",
-  "metadata": {
-    "workflow": "crm-sync",
-    "execution_id": "{{$execution.id}}"
-  }
-}
-```
+## Security defaults
 
-## Node-level checklist
-
-- HTTP Request:
-  - Method `POST`, URL `https://api.contro1.com/api/centcom/v1/requests`
-  - Auth header from `{{$env.CENTCOM_API_KEY}}`
-- Wait:
-  - Resume mode `On Webhook Call`
-  - Enable auth where possible
-- IF/Switch:
-  - `approved == true` -> continue
-  - else -> safe fallback
-
-## Production checklist
-
-- Add idempotency key for retried create-request executions.
-- Protect resume endpoints from unauthorized calls.
-- Validate callback payload before branching.
-- Keep correlation IDs in metadata for observability.
-- Add explicit timeout handling branch.
-
-## Troubleshooting
-
-- Workflow does not resume: validate `callback_url` reachability and run context.
-- Wrong branch decision: verify response parsing (`approved` or boolean `value`).
-- Duplicate pending approvals: add deterministic idempotency keys.
-
-## Documentation in this repo
-
-- Guide: `docs/n8n-connector.md`
-- Skill: `skills/centcom-n8n.md`
-
-## Related repositories
-
-- [`centcom`](https://github.com/contro1-hq/centcom)
-- [`centcom-sdk`](https://github.com/contro1-hq/centcom-sdk)
+- Do not hardcode API keys in workflow JSON.
+- Use env-backed header in n8n:
+  - `Authorization: Bearer {{$env.CENTCOM_API_KEY}}`
+- Verify callback signatures in proxy/bridge services.
+- Protect n8n resume webhook URLs (auth/token where possible).

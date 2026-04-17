@@ -1,6 +1,6 @@
 # n8n Connector Guide
 
-This guide shows the recommended n8n integration with CENTCOM approvals.
+This guide shows the recommended n8n integration with Contro1 approvals using Integration Protocol v1.
 
 ## Prerequisites
 
@@ -10,23 +10,36 @@ This guide shows the recommended n8n integration with CENTCOM approvals.
 
 ## Authentication setup (required)
 
-In your n8n HTTP Request node, configure:
-
-- Header `Authorization: Bearer {{$env.CENTCOM_API_KEY}}`
-- Header `Content-Type: application/json`
-
-If callbacks pass through your own service/proxy, verify CENTCOM signatures with:
+Set n8n environment variables:
 
 ```bash
+CENTCOM_API_KEY=your_centcom_api_key
+CENTCOM_BASE_URL=https://api.contro1.com/api/centcom/v1
 CENTCOM_WEBHOOK_SECRET=whsec_your_signing_secret
 ```
 
+In your HTTP Request node, configure:
+
+- Header `Authorization: Bearer {{$env.CENTCOM_API_KEY}}`
+- Header `Content-Type: application/json`
+- URL: `{{$env.CENTCOM_BASE_URL}}/requests`
+
 ## Recommended flow
 
-1. Use `HTTP Request` node to create CENTCOM request.
+1. Use `HTTP Request` node to create a protocol v1 request.
 2. Use `Wait` node (`On Webhook Call`) to pause.
 3. Resume workflow when CENTCOM sends callback.
 4. Branch on approval result.
+
+## Starter kit
+
+Use `examples/n8n_callback_proxy.py` for a local callback receiver/proxy.
+
+It includes:
+
+- signature verification for Contro1 callbacks
+- forwarding payloads to n8n Wait resume webhook URL
+- optional auth bearer when forwarding to n8n
 
 ## Node-by-node wiring
 
