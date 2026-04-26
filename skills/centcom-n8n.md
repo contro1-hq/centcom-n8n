@@ -16,7 +16,7 @@ If you use the callback proxy script (`examples/n8n_callback_proxy.py`):
 pip install centcom flask python-dotenv requests
 ```
 
-n8n itself requires no installation — it runs as a service.
+n8n itself requires no installation - it runs as a service.
 
 ## Required configuration
 
@@ -49,6 +49,7 @@ Build an n8n workflow that:
 4. Resume via callback and branch by approval result (`approved` or boolean `value`).
 5. Keep execution metadata in request `metadata` (workflow ID, execution ID, entity ID).
 6. Add timeout and fallback branch for expired/denied cases.
+7. For high-risk actions, set `approval_policy` so n8n resumes only after quorum.
 
 ## Required CENTCOM request fields
 
@@ -59,9 +60,42 @@ Build an n8n workflow that:
   "context": "n8n workflow requests production deploy approval.",
   "callback_url": "https://your-n8n-host/webhook/centcom-resume",
   "required_role": "manager",
+  "approval_policy": {
+    "mode": "threshold",
+    "required_approvals": 2,
+    "required_roles": ["manager", "admin"],
+    "separation_of_duties": true,
+    "fail_closed_on_timeout": true
+  },
   "metadata": {
     "workflow": "deploy-pipeline",
     "execution_id": "{{$execution.id}}"
+  }
+}
+```
+
+## Multi-approval callback behavior
+
+For a two-person policy, the first approval records an audit event and keeps the workflow paused. CENTCOM calls the n8n resume webhook only when quorum is met, a reviewer rejects, or the request times out. Treat missing quorum as fail-closed for deploys, payments, data deletion, and privilege escalation.
+
+Example high-risk payloads:
+
+```json
+{
+  "type": "approval",
+  "question": "Approve bulk customer data deletion?",
+  "context": "Delete 12,430 stale CRM records after retention review.",
+  "callback_url": "https://your-n8n-host/webhook/centcom-resume",
+  "approval_policy": {
+    "mode": "threshold",
+    "required_approvals": 2,
+    "required_roles": ["manager", "admin"],
+    "separation_of_duties": true,
+    "fail_closed_on_timeout": true
+  },
+  "metadata": {
+    "workflow": "data-retention-cleanup",
+    "risk": "bulk_delete"
   }
 }
 ```
@@ -86,10 +120,12 @@ Build an n8n workflow that:
 - Not storing execution correlation in `metadata`.
 - Treating all responses as `approved`; always parse and validate.
 - Missing idempotency in retried create requests.
+- Resuming n8n after the first approval when `approval_policy.required_approvals` is greater than 1.
 
 ## Validation steps
 
 1. Trigger workflow and confirm request appears in CENTCOM queue.
-2. Approve once and verify workflow resumes approved branch.
-3. Reject once and verify workflow goes to fallback branch.
-4. Repeat run to confirm metadata correlation remains correct.
+2. For single approval, approve once and verify workflow resumes approved branch.
+3. For two-person approval, approve once and verify workflow stays paused until quorum.
+4. Reject once and verify workflow goes to fallback branch.
+5. Repeat run to confirm metadata correlation remains correct.
