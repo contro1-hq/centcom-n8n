@@ -142,7 +142,7 @@ Example high-risk payload:
 
 - Using no auth on resume webhook in production.
 - Not validating CENTCOM callback signatures when using a proxy/bridge endpoint.
-- Not setting `correlation_id` — without it, audit log entries appear disconnected from the approval request.
+- Not setting `correlation_id` - without it, audit log entries appear disconnected from the approval request.
 - Treating all responses as `approved`; always parse and validate.
 - Missing idempotency in retried create requests.
 - Resuming n8n after the first approval when `approval_policy.required_approvals` is greater than 1.
