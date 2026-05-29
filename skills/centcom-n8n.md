@@ -160,3 +160,9 @@ Example high-risk payload:
 For teams operating under EU or US AI governance requirements, see:
 - https://contro1.com/guides/eu-ai-act-readiness
 - https://contro1.com/guides/us-ai-governance-readiness
+
+## Related integrations
+
+- Python SDK skill: https://github.com/contro1-hq/centcom/blob/main/skills/centcom-python-sdk.md
+- JS SDK skill: https://github.com/contro1-hq/centcom-sdk/blob/main/skills/centcom-js-sdk.md
+- Microsoft AGT companion skill: https://github.com/contro1-hq/contro1-microsoft-agent-governance-toolkit-integration/blob/main/skills/contro1-microsoft-agent-governance-toolkit-integration.md

@@ -104,3 +104,9 @@ If `satisfiable` is `false`, route to an error branch before the Wait node.
 For teams operating AI in regulated environments:
 - [EU AI Act readiness guide](https://contro1.com/guides/eu-ai-act-readiness)
 - [US AI Governance readiness guide](https://contro1.com/guides/us-ai-governance-readiness)
+
+## Related repositories
+
+- [centcom](https://github.com/contro1-hq/centcom) - Python SDK for direct API integrations
+- [centcom-sdk](https://github.com/contro1-hq/centcom-sdk) - JavaScript/TypeScript SDK for direct API integrations
+- [contro1-microsoft-agent-governance-toolkit-integration](https://github.com/contro1-hq/contro1-microsoft-agent-governance-toolkit-integration) - companion bridge for Microsoft AGT `require_approval` policy decisions
